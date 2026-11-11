@@ -46,22 +46,6 @@ services:
     networks:
       - devforum-net
 
-  web:
-    build:
-      context: ./dev-forum
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
-    container_name: devforum-web
-    restart: unless-stopped
-    depends_on:
-      - api
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-    networks:
-      - devforum-net
 
 volumes:
   postgres_data:
