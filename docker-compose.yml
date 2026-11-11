@@ -51,6 +51,7 @@ services:
       # Paths inside the container
       JWT_SECRET_FILE: /app/config/jwt-secret.key
       STORAGE_BASE_PATH: /app/uploads
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
     volumes:
       - api_uploads:/app/uploads
       - api_config:/app/config
