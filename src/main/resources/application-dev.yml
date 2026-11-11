@@ -1,99 +1,28 @@
-server:
-  port: 8085
-  tomcat:
-    threads:
-      max: 300
-      min-spare: 50
+env:
+  # Database (local Oracle)
+  db-url: jdbc:oracle:thin:@//localhost:1521/orcl
+  db-username: dev
+  db-password: 123
+  jpa-ddl-auto: update
+  jpa-show-sql: false
 
-spring:
-  application:
-    name: devforum-api
+  # Mail: leave host empty-safe; mail is printed to the log if not configured
+  mail-host: smtp.gmail.com
+  mail-port: 587
+  mail-username: ${MAIL_USERNAME:}
+  mail-password: ${MAIL_PASSWORD:}
+  mail-auth: true
+  mail-starttls: true
+  mail-from: no-reply@devforum.local
 
-  # Which variable file to load: application-dev.yml or application-prod.yml
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:prod}
+  # Cookie (plain http on localhost)
+  cookie-secure: false
+  cookie-same-site: Lax
 
-  mail:
-    host: ${env.mail-host}
-    port: ${env.mail-port}
-    username: ${env.mail-username:}
-    password: ${env.mail-password:}
-    properties:
-      mail.smtp.auth: ${env.mail-auth}
-      mail.smtp.starttls.enable: ${env.mail-starttls}
+  # URLs
+  frontend-url: http://localhost:3000
+  files-base-url: http://localhost:8085/files
+  cors-origins: http://localhost:3000
 
-  datasource:
-    url: ${env.db-url}
-    username: ${env.db-username}
-    password: ${env.db-password}
-    driver-class-name: oracle.jdbc.OracleDriver
-    hikari:
-      maximum-pool-size: 50
-      minimum-idle: 30
-      connection-timeout: 30000
-      max-lifetime: 1800000
-
-  jpa:
-    hibernate:
-      ddl-auto: ${env.jpa-ddl-auto}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
-        format_sql: true
-    open-in-view: false
-    show-sql: ${env.jpa-show-sql}
-
-  # Multipart upload limits for resource media (images, PDFs/books, code archives, etc.)
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 50MB
-      max-request-size: 200MB
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info,metrics,prometheus"
-  endpoint:
-    metrics:
-      access: unrestricted
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-
-logging:
-  level:
-    org.springframework.web.cors: ${env.log-level-cors}
-
-jwt:
-  # The signing key is generated on first boot by JwtKeyManager and saved to `secret-file`.
-  # Delete the file to force a fresh key (invalidates all existing tokens).
-  secret-file: ./config/jwt-secret.key
-  expiration-ms: 86400000 # 24 hours
-
-# Local disk storage for uploaded resource media and user avatar/cover images.
-storage:
-  base-path: ./uploads
-  base-url: ${env.files-base-url}
-  allowed-extensions: jpg,jpeg,png,gif,webp,pdf,zip,tar,gz,md,txt,java,py,js,ts,json,yml,yaml
-  max-file-size-mb: 50
-
-# Comma-separated list, Spring binds it to List<String>
-cors:
-  allowed-origins: ${env.cors-origins}
-
-# Archived resources are a recycle bin: deleted for good after this many days.
-app:
-  cookie:
-    secure: ${env.cookie-secure}
-    same-site: ${env.cookie-same-site}
-  archive:
-    retention-days: 30
-    purge-cron: "0 30 3 * * *"   # every night at 03:30
-  frontend-url: ${env.frontend-url}   # link in the password reset e-mail
-  mail:
-    from: ${env.mail-from}
+  # Logging
+  log-level-cors: INFO

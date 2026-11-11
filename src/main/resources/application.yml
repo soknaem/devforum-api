@@ -22,14 +22,15 @@ spring:
       mail.smtp.auth: ${env.mail-auth}
       mail.smtp.starttls.enable: ${env.mail-starttls}
 
+  # No driver-class-name / dialect: both are auto-detected from the JDBC URL,
+  # so the same file works with Oracle (dev) and PostgreSQL (prod).
   datasource:
     url: ${env.db-url}
     username: ${env.db-username}
     password: ${env.db-password}
-    driver-class-name: oracle.jdbc.OracleDriver
     hikari:
-      maximum-pool-size: 50
-      minimum-idle: 30
+      maximum-pool-size: 20
+      minimum-idle: 5
       connection-timeout: 30000
       max-lifetime: 1800000
 
@@ -38,7 +39,6 @@ spring:
       ddl-auto: ${env.jpa-ddl-auto}
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
         format_sql: true
     open-in-view: false
     show-sql: ${env.jpa-show-sql}
