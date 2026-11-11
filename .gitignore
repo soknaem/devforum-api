@@ -1,0 +1,18 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Generated at runtime - random JWT signing key, never commit this
+/config/
+
+# Uploaded media (local disk storage)
+/uploads/
+
+# OS
+.DS_Store
