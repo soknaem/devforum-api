@@ -1,5 +1,4 @@
 services:
-  # 1. PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: devforum-postgres
@@ -7,13 +6,9 @@ services:
     environment:
       POSTGRES_DB: dev_db
       POSTGRES_USER: DEV
-      POSTGRES_PASSWORD: "123"
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Optional: If you have SQL init scripts in a ./db folder, uncomment the line below:
-      # - ./db:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U DEV -d dev_db"]
       interval: 10s
@@ -22,7 +17,6 @@ services:
     networks:
       - devforum-net
 
-  # 2. Spring Boot Backend API
   api:
     build:
       context: .
@@ -38,24 +32,26 @@ services:
       SERVER_PORT: 8085
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dev_db
       SPRING_DATASOURCE_USERNAME: DEV
-      SPRING_DATASOURCE_PASSWORD: "123"
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET_FILE: /app/config/jwt-secret.key
       STORAGE_BASE_PATH: /app/uploads
-      STORAGE_BASE_URL: http://localhost:8085/files
-      CORS_ALLOWED_ORIGINS: http://localhost:3000
-      APP_FRONTEND_URL: http://localhost:3000
+      STORAGE_BASE_URL: ${PUBLIC_API_URL}/files
+      CORS_ALLOWED_ORIGINS: ${FRONTEND_URL}
+      APP_FRONTEND_URL: ${FRONTEND_URL}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
     volumes:
       - api_uploads:/app/uploads
       - api_config:/app/config
     networks:
       - devforum-net
 
-  # 3. Next.js Frontend (dev-forum / ui)
   web:
     build:
       context: ./dev-forum
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
     container_name: devforum-web
     restart: unless-stopped
     depends_on:
@@ -64,7 +60,6 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:8085
     networks:
       - devforum-net
 
