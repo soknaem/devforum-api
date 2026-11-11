@@ -10,6 +10,7 @@ import com.setec.forum.feature.auth.dto.response.AuthResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -31,6 +32,14 @@ public class AuthController {
 
     private final AuthService authService;
     private final PasswordService passwordService;
+
+    // Cookie flags come from config (app.cookie.*), see application-dev/prod.yml.
+    // Not final on purpose: @RequiredArgsConstructor only covers the final fields above.
+    @Value("${app.cookie.secure}")
+    private boolean cookieSecure;
+
+    @Value("${app.cookie.same-site}")
+    private String cookieSameSite;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
@@ -97,18 +106,10 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> logout(
             HttpServletResponse response
     ) {
-        ResponseCookie cookie = ResponseCookie
-                .from(ACCESS_TOKEN_COOKIE, "")
-                .httpOnly(true)
-                .secure(false) // localhost; set true in HTTPS production
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(Duration.ZERO)
-                .build();
-
+        // Must use the same flags as when the cookie was set, otherwise the browser won't clear it.
         response.addHeader(
                 HttpHeaders.SET_COOKIE,
-                cookie.toString()
+                buildAccessTokenCookie("", Duration.ZERO).toString()
         );
 
         return ResponseEntity.ok(
@@ -129,19 +130,21 @@ public class AuthController {
             );
         }
 
-        ResponseCookie cookie = ResponseCookie
-                .from(ACCESS_TOKEN_COOKIE, token)
-                .httpOnly(true)
-                .secure(false) // localhost; set true in HTTPS production
-                .sameSite("Lax")
-                .path("/")
-                .maxAge(ACCESS_TOKEN_MAX_AGE)
-                .build();
-
         response.addHeader(
                 HttpHeaders.SET_COOKIE,
-                cookie.toString()
+                buildAccessTokenCookie(token, ACCESS_TOKEN_MAX_AGE).toString()
         );
+    }
+
+    private ResponseCookie buildAccessTokenCookie(String value, Duration maxAge) {
+        return ResponseCookie
+                .from(ACCESS_TOKEN_COOKIE, value)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .sameSite(cookieSameSite)
+                .path("/")
+                .maxAge(maxAge)
+                .build();
     }
 
     private AuthResponse publicResponse(AuthResponse auth) {

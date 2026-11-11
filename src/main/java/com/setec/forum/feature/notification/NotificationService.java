@@ -42,6 +42,11 @@ public class NotificationService {
     private final InterestService interestService;
 
     @Transactional
+    public void deleteForResource(Long resourceId) {
+        notificationRepository.deleteAllForResource(resourceId);
+    }
+
+    @Transactional
     public void notify(User recipient, User actor, NotificationType type, String targetType, Long targetId, String message) {
         if (recipient.getId().equals(actor.getId())) {
             return; // don't notify users about their own actions

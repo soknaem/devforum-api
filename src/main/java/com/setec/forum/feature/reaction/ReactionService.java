@@ -38,6 +38,8 @@ public class ReactionService {
     private final RealtimePublisher realtimePublisher;
 
     /** Upserts the current user's reaction on a target. Re-reacting with a different type just swaps it. */
+
+
     @Transactional
     public ReactionSummaryResponse react(ReactionRequest request, String currentUsername) {
         User user = requireUser(currentUsername);

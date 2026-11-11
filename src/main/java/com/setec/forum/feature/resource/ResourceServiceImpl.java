@@ -6,6 +6,7 @@ import com.setec.forum.exception.UnauthorizedException;
 import com.setec.forum.feature.bookmark.BookmarkRepository;
 import com.setec.forum.feature.comment.CommentRepository;
 import com.setec.forum.feature.block.BlockService;
+import com.setec.forum.feature.feed.FeedSeenRepository;
 import com.setec.forum.feature.media.MediaService;
 import com.setec.forum.feature.notification.NotificationService;
 import com.setec.forum.feature.preference.ResourcePreferenceRepository;
@@ -72,6 +73,7 @@ public class ResourceServiceImpl implements ResourceService {
     private final NotificationService notificationService;
     private final MediaService mediaService;
     private final BlockService blockService;
+    private final FeedSeenRepository feedSeenRepository;
 
     /** Archived resources are deleted automatically after this many days. */
     @Value("${app.archive.retention-days:30}")
@@ -201,38 +203,29 @@ public class ResourceServiceImpl implements ResourceService {
     /** Deletes one resource together with everything that points at it. */
     private void deleteInternal(Resource resource, String actor) {
         Long id = resource.getId();
+
+        // Reposts are resource rows too; delete their dependent data before removing the original.
+        List<Resource> reposts = new ArrayList<>(resourceRepository.findAllBySharedFromId(id));
+        reposts.forEach(repost -> deleteInternal(repost, actor));
+
         List<Media> files = new ArrayList<>(resource.getMedia());
 
-        // 0. Content blocks reference the media rows, so they have to go first.
         resource.getBlocks().clear();
         resourceRepository.flush();
-
-        // 1. Detach many-to-many tags associations
         resource.getTags().clear();
-
-        // 2. Set shared_from_id = NULL on any reposts pointing to this resource
         resourceRepository.nullifySharedFrom(id);
 
-        // 3. Remove view history records
         resourceViewRepository.deleteByResourceId(id);
-
-        // 4. Delete comment replies first, then root comments to avoid parent_id FK violations
+        feedSeenRepository.deleteByResourceId(id);
+        notificationService.deleteForResource(id);
+        reactionRepository.deleteByTargetTypeAndResourceId(ReactionTargetType.COMMENT, id);
         commentRepository.deleteRepliesByResourceId(id);
         commentRepository.deleteByResourceId(id);
-
-        // 5. Delete reactions targeting this resource
         reactionRepository.deleteByTargetTypeAndTargetId(ReactionTargetType.RESOURCE, id);
-
-        // 6. Delete bookmarks targeting this resource
         bookmarkRepository.deleteByResourceId(id);
-
-        // 7. Delete "Interested / Not interested" choices (FK to resources)
         preferenceRepository.deleteByResourceId(id);
 
-        // 8. Delete the resource (attached media rows cascade via CascadeType.ALL)
         resourceRepository.delete(resource);
-
-        // 9. ...and the files they pointed at, so uploads do not pile up on disk
         files.forEach(mediaService::deleteFile);
 
         realtimePublisher.publish(RealtimeEvent.builder()

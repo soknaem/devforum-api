@@ -13,6 +13,12 @@ import java.util.Optional;
 
 public interface ReactionRepository extends JpaRepository<Reaction, Long> {
 
+    @Modifying
+    @Query("delete from Reaction r where r.targetType = :targetType and r.targetId in (select c.id from Comment c where c.resource.id = :resourceId)")
+    void deleteByTargetTypeAndResourceId(
+            @Param("targetType") ReactionTargetType targetType,
+            @Param("resourceId") Long resourceId);
+
     Optional<Reaction> findByUserIdAndTargetTypeAndTargetId(Long userId, ReactionTargetType targetType, Long targetId);
 
     /** Latest reactions of a user - input of the interest profile. */

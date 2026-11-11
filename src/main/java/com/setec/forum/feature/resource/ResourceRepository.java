@@ -16,6 +16,7 @@ import java.util.List;
 public interface ResourceRepository extends JpaRepository<Resource, Long>, JpaSpecificationExecutor<Resource> {
 
     List<Resource> findByStatusAndIdLessThanOrderByIdDesc(ResourceStatus status, Long cursorId, Pageable pageable);
+    List<Resource> findAllBySharedFromId(Long sharedFromId);
 
     /**
      * Same keyset query as above, minus every resource this viewer marked "Not interested".

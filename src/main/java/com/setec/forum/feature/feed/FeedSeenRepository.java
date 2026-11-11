@@ -2,6 +2,7 @@ package com.setec.forum.feature.feed;
 
 import com.setec.forum.model.FeedSeen;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -12,4 +13,8 @@ public interface FeedSeenRepository extends JpaRepository<FeedSeen, Long> {
 
     @Query("select s.resource.id from FeedSeen s where s.user.id = :userId and s.resource.id in :resourceIds")
     List<Long> findSeenResourceIds(@Param("userId") Long userId, @Param("resourceIds") Collection<Long> resourceIds);
+
+    @Modifying
+    @Query("delete from FeedSeen s where s.resource.id = :resourceId")
+    void deleteByResourceId(@Param("resourceId") Long resourceId);
 }
