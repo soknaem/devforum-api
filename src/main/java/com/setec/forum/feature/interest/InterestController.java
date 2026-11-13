@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.setec.forum.feature.interest.service.InterestService;
 
 /**
  * GET /api/v1/users/me/interests   - picked tags + learned tags + suggestions

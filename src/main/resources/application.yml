@@ -11,7 +11,7 @@ spring:
 
   # Which variable file to load: application-dev.yml or application-prod.yml
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:prod}
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   mail:
     host: ${env.mail-host}
@@ -29,8 +29,8 @@ spring:
     username: ${env.db-username}
     password: ${env.db-password}
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: ${env.db-pool-max}
+      minimum-idle: ${env.db-pool-min}
       connection-timeout: 30000
       max-lifetime: 1800000
 
@@ -76,6 +76,7 @@ jwt:
   expiration-ms: 86400000 # 24 hours
 
 # Local disk storage for uploaded resource media and user avatar/cover images.
+# Swap for S3/GCS later: only StorageService's implementation needs to change.
 storage:
   base-path: ./uploads
   base-url: ${env.files-base-url}
@@ -97,3 +98,6 @@ app:
   frontend-url: ${env.frontend-url}   # link in the password reset e-mail
   mail:
     from: ${env.mail-from}
+
+# Password reset e-mail: if mail host/credentials are empty, nothing is sent and the
+# e-mail (with the reset link) is printed in the application log. Gmail needs an "app password".

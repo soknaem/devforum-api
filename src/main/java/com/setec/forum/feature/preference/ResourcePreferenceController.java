@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.setec.forum.feature.preference.service.ResourcePreferenceService;
 
 /**
  * Backs the "Interested" / "Not interested" items of a post's "..." menu.

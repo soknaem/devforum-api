@@ -1,6 +1,6 @@
 package com.setec.forum.init;
 
-import com.setec.forum.feature.notification.NotificationService;
+import com.setec.forum.feature.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;

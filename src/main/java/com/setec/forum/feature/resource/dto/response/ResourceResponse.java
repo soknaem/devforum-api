@@ -32,6 +32,7 @@ public class ResourceResponse {
 
     private Long authorId;
     private String authorUsername;
+    private String authorAvatarUrl;
 
     private List<String> tags;
 

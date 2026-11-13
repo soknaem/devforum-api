@@ -2,7 +2,7 @@ package com.setec.forum.feature.resource;
 
 import com.setec.forum.base.ApiResponse;
 import com.setec.forum.base.PageResponse;
-import com.setec.forum.feature.media.MediaService;
+import com.setec.forum.feature.media.service.MediaService;
 import com.setec.forum.feature.resource.dto.request.BlockRequest;
 import com.setec.forum.feature.resource.dto.request.ResourceRequest;
 import com.setec.forum.feature.resource.dto.request.StatusRequest;
@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import com.setec.forum.feature.resource.service.ResourceService;
 
 @RestController
 @RequestMapping("/api/v1/resources")

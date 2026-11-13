@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Duration;
+import com.setec.forum.feature.auth.service.AuthService;
+import com.setec.forum.feature.auth.service.PasswordService;
 
 @RestController
 @RequestMapping("/api/v1/auth")

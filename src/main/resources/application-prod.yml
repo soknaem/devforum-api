@@ -1,57 +1,24 @@
-#env:
-#  # Database
-#  db-url: jdbc:oracle:thin:@//localhost:1521/orcl
-#  db-username: dev
-#  db-password: 123
-#  jpa-ddl-auto: update
-#  jpa-show-sql: false
-#
-#  # Mail (Gmail)
-#  mail-host: smtp.gmail.com
-#  mail-port: 587
-#  mail-username: sokname56@gmail.com
-#  mail-password: ptbf xnmb rljd yepa
-#  mail-auth: true
-#  mail-starttls: true
-#  mail-from: no-reply@devforum.local
-#
-#  #Cookie
-#  cookie-secure: true
-#  cookie-same-site: None
-#
-#  # URLs
-#  frontend-url: https://devforum-ten.vercel.app
-#  files-base-url: https://advocacy-carl-choose-sep.trycloudflare.com/files
-#  cors-origins: http://localhost:3000,https://devforum-ten.vercel.app,https://*.vercel.app
-#
-#  # Logging
-#  log-level-cors: INFO
-
 env:
-  # Database (PostgreSQL in docker compose)
-  db-url: ${DB_URL}
-  db-username: ${DB_USERNAME}
-  db-password: ${DB_PASSWORD}
+  # PostgreSQL
+  db-url: ${DB_URL:jdbc:postgresql://localhost:5432/dev_db}
+  db-username: ${DB_USERNAME:DEV}
+  db-password: ${DB_PASSWORD:123}
+  db-pool-max: 20
+  db-pool-min: 5
   jpa-ddl-auto: ${JPA_DDL_AUTO:update}
   jpa-show-sql: false
 
-  # Mail (Gmail)
   mail-host: smtp.gmail.com
   mail-port: 587
-  mail-username: ${MAIL_USERNAME:}
-  mail-password: ${MAIL_PASSWORD:}
+  mail-username: ${SPRING_MAIL_USERNAME:}
+  mail-password: ${SPRING_MAIL_PASSWORD:}
   mail-auth: true
   mail-starttls: true
-  mail-from: ${MAIL_FROM:no-reply@devforum.local}
+  mail-from: ${APP_MAIL_FROM:no-reply@devforum.local}
 
-  # Cookie (SameSite=None + Secure requires HTTPS)
-  cookie-secure: ${COOKIE_SECURE:true}
-  cookie-same-site: ${COOKIE_SAME_SITE:None}
-
-  # URLs
-  frontend-url: ${FRONTEND_URL}
-  files-base-url: ${PUBLIC_API_URL}/files
-  cors-origins: ${CORS_ORIGINS}
-
-  # Logging
+  files-base-url: ${STORAGE_BASE_URL:http://localhost:8085/files}   # set to your tunnel URL
+  cors-origins: ${CORS_ALLOWED_ORIGINS:https://devforum-ten.vercel.app}
+  frontend-url: ${APP_FRONTEND_URL:https://devforum-ten.vercel.app}
+  cookie-secure: true
+  cookie-same-site: None   # Vercel and the tunnel are different sites, so cross-site cookies need None + secure
   log-level-cors: INFO

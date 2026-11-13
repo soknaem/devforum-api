@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import com.setec.forum.feature.block.service.BlockService;
 
 /**
  * POST   /api/v1/users/{username}/block    block

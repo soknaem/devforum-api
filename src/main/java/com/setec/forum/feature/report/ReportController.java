@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.setec.forum.feature.report.service.ReportService;
 
 /** POST /api/v1/reports  {"targetType":"RESOURCE","targetId":5,"reason":"SPAM","details":"..."} */
 @RestController

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import com.setec.forum.feature.media.service.MediaService;
 
 @RestController
 @RequestMapping("/api/v1/media")

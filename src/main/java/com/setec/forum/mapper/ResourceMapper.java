@@ -33,6 +33,7 @@ public interface ResourceMapper {
     @Mapping(target = "categoryName", source = "category.name")
     @Mapping(target = "authorId", source = "user.id")
     @Mapping(target = "authorUsername", source = "user.username")
+    @Mapping(target = "authorAvatarUrl", source = "user.profile.avatarUrl")
     @Mapping(target = "tags", expression = "java(mapTagNames(resource.getTags()))")
     @Mapping(target = "media", expression = "java(mapMedia(resource.getMedia()))")
     @Mapping(target = "commentCount", ignore = true)
@@ -78,6 +79,8 @@ public interface ResourceMapper {
                 .categoryName(original.getCategory() != null ? original.getCategory().getName() : null)
                 .authorId(original.getUser() != null ? original.getUser().getId() : null)
                 .authorUsername(original.getUser() != null ? original.getUser().getUsername() : null)
+                .authorAvatarUrl(original.getUser() != null && original.getUser().getProfile() != null
+                        ? original.getUser().getProfile().getAvatarUrl() : null)
                 .tags(mapTagNames(original.getTags()))
                 .media(mapMedia(original.getMedia()))
                 .viewCount(original.getViewCount())

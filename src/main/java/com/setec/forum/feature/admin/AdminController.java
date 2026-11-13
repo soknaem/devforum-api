@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.setec.forum.feature.admin.service.AdminService;
 
 /**
  * Admin panel API. Every route under /api/v1/admin requires ROLE_ADMIN (see SecurityConfig).

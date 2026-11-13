@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import com.setec.forum.feature.resource.service.ResourceService;
 
 /**
  * Archived resources are a 30-day recycle bin: the author can restore them until then, afterwards

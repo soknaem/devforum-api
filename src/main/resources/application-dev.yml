@@ -3,14 +3,20 @@ env:
   db-url: jdbc:oracle:thin:@//localhost:1521/orcl
   db-username: dev
   db-password: 123
+  db-pool-max: 20
+  db-pool-min: 5
   jpa-ddl-auto: update
   jpa-show-sql: false
+
+#  MAIL_USERNAME=sokname56@gmail.com
+#  MAIL_PASSWORD='ptbf xnmb rljd yepa'
 
   # Mail: leave host empty-safe; mail is printed to the log if not configured
   mail-host: smtp.gmail.com
   mail-port: 587
   mail-username: ${MAIL_USERNAME:}
   mail-password: ${MAIL_PASSWORD:}
+
   mail-auth: true
   mail-starttls: true
   mail-from: no-reply@devforum.local

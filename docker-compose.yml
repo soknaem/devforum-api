@@ -1,22 +1,28 @@
 services:
+  # 1. PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: devforum-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: dev_db
-      POSTGRES_USER: DEV
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"   # reachable from this machine only
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Optional: If you have SQL init scripts in a ./db folder, uncomment the line below:
+      # - ./db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U DEV -d dev_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - devforum-net
 
+  # 2. Spring Boot Backend API (UI is hosted on Vercel)
   api:
     build:
       context: .
@@ -27,31 +33,29 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "8085:8085"
+      - "127.0.0.1:8085:8085"   # cloudflared on this machine connects here
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
 
-      # Database
-      DB_URL: jdbc:postgresql://postgres:5432/dev_db
-      DB_USERNAME: DEV
-      DB_PASSWORD: ${POSTGRES_PASSWORD}
-      JPA_DDL_AUTO: update
+      # Database (host is the compose service name)
+      DB_URL: ${DB_URL}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
 
       # Mail
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-no-reply@devforum.local}
 
-      # URLs / CORS / cookies
-      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      # Cookies
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE:-None}
+
+      # URLs
       FRONTEND_URL: ${FRONTEND_URL}
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
-      COOKIE_SECURE: ${COOKIE_SECURE}
-      COOKIE_SAME_SITE: ${COOKIE_SAME_SITE}
-
-      # Paths inside the container
-      JWT_SECRET_FILE: /app/config/jwt-secret.key
-      STORAGE_BASE_PATH: /app/uploads
-      SERVER_FORWARD_HEADERS_STRATEGY: framework
     volumes:
       - api_uploads:/app/uploads
       - api_config:/app/config

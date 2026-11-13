@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import com.setec.forum.feature.user.service.ResourceViewService;
+import com.setec.forum.feature.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/v1/users")
