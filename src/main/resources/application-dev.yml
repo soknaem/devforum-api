@@ -14,9 +14,10 @@ env:
   # Mail: leave host empty-safe; mail is printed to the log if not configured
   mail-host: smtp.gmail.com
   mail-port: 587
-  mail-username: ${MAIL_USERNAME:}
-  mail-password: ${MAIL_PASSWORD:}
-
+#  mail-username: ${MAIL_USERNAME:}
+#  mail-password: ${MAIL_PASSWORD:}
+  mail-username: sokname56@gmail.com
+  mail-password: ptbf xnmb rljd yepa
   mail-auth: true
   mail-starttls: true
   mail-from: no-reply@devforum.local

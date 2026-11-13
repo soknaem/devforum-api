@@ -22,7 +22,8 @@ public class CorsProperties {
             "http://localhost:3001",
             "https://advocacy-carl-choose-sep.trycloudflare.com",
             "https://devforum-ten.vercel.app",
-            "https://*.vercel.app"
+            "https://*.vercel.app",
+            "https://devforum.dek.today"
     );
 
     @PostConstruct
