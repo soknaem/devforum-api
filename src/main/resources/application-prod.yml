@@ -1,24 +1,30 @@
 env:
-  # PostgreSQL
-  db-url: ${DB_URL:jdbc:postgresql://localhost:5432/dev_db}
-  db-username: ${DB_USERNAME:DEV}
-  db-password: ${DB_PASSWORD:123}
+  # Database (PostgreSQL in docker compose)
+  db-url: ${DB_URL}
+  db-username: ${DB_USERNAME}
+  db-password: ${DB_PASSWORD}
   db-pool-max: 20
   db-pool-min: 5
   jpa-ddl-auto: ${JPA_DDL_AUTO:update}
   jpa-show-sql: false
 
+  # Mail (Gmail)
   mail-host: smtp.gmail.com
   mail-port: 587
-  mail-username: ${SPRING_MAIL_USERNAME:}
-  mail-password: ${SPRING_MAIL_PASSWORD:}
+  mail-username: ${MAIL_USERNAME:}
+  mail-password: ${MAIL_PASSWORD:}
   mail-auth: true
   mail-starttls: true
-  mail-from: ${APP_MAIL_FROM:no-reply@devforum.local}
+  mail-from: ${MAIL_FROM:no-reply@devforum.local}
 
-  files-base-url: ${STORAGE_BASE_URL:http://localhost:8085/files}   # set to your tunnel URL
-  cors-origins: ${CORS_ALLOWED_ORIGINS:https://devforum-ten.vercel.app}
-  frontend-url: ${APP_FRONTEND_URL:https://devforum-ten.vercel.app}
-  cookie-secure: true
-  cookie-same-site: None   # Vercel and the tunnel are different sites, so cross-site cookies need None + secure
+  # Cookie (SameSite=None + Secure requires HTTPS)
+  cookie-secure: ${COOKIE_SECURE:true}
+  cookie-same-site: ${COOKIE_SAME_SITE:None}
+
+  # URLs
+  frontend-url: ${FRONTEND_URL}
+  files-base-url: ${PUBLIC_API_URL}/files
+  cors-origins: ${CORS_ORIGINS}
+
+  # Logging
   log-level-cors: INFO
