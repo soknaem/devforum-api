@@ -1,11 +1,15 @@
 package com.setec.forum.feature.admin.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.setec.forum.base.PageResponse;
 import com.setec.forum.exception.ResourceNotFoundException;
 import com.setec.forum.feature.admin.*;
 import com.setec.forum.feature.admin.AdminDtos.AuditRow;
 import com.setec.forum.feature.admin.AdminDtos.CommentRow;
 import com.setec.forum.feature.admin.AdminDtos.DayPoint;
+import com.setec.forum.feature.admin.AdminDtos.ForumReplyRow;
+import com.setec.forum.feature.admin.AdminDtos.ForumTopicRow;
 import com.setec.forum.feature.admin.AdminDtos.ReportRow;
 import com.setec.forum.feature.admin.AdminDtos.ResolveRequest;
 import com.setec.forum.feature.admin.AdminDtos.Stats;
@@ -14,6 +18,10 @@ import com.setec.forum.feature.admin.service.AdminService;
 import com.setec.forum.feature.admin.service.AuditService;
 import com.setec.forum.feature.comment.CommentRepository;
 import com.setec.forum.feature.comment.service.CommentService;
+import com.setec.forum.feature.forum.ForumReplyRepository;
+import com.setec.forum.feature.forum.ForumTopicRepository;
+import com.setec.forum.feature.forum.dto.ForumContentBlock;
+import com.setec.forum.feature.forum.service.ForumService;
 import com.setec.forum.feature.reaction.ReactionRepository;
 import com.setec.forum.feature.report.ReportRepository;
 import com.setec.forum.feature.resource.ResourceRepository;
@@ -23,6 +31,9 @@ import com.setec.forum.feature.resource.dto.response.ResourceResponse;
 import com.setec.forum.feature.resource.service.ResourceService;
 import com.setec.forum.mapper.ResourceMapper;
 import com.setec.forum.model.Comment;
+import com.setec.forum.model.ForumCategory;
+import com.setec.forum.model.ForumReply;
+import com.setec.forum.model.ForumTopic;
 import com.setec.forum.model.Report;
 import com.setec.forum.model.Resource;
 import com.setec.forum.model.ResourceStatus;
@@ -64,6 +75,10 @@ public class AdminServiceImpl implements AdminService {
     private final ResourceService resourceService;
     private final CommentService commentService;
     private final ResourceMapper resourceMapper;
+    private final ForumTopicRepository forumTopicRepository;
+    private final ForumReplyRepository forumReplyRepository;
+    private final ForumService forumService;
+    private final ObjectMapper objectMapper;
 
     // -------------------------------------------------------------- dashboard
 
@@ -236,6 +251,81 @@ public class AdminServiceImpl implements AdminService {
         auditService.log(admin, "COMMENT_DELETED", "COMMENT", id, null);
     }
 
+    // ------------------------------------------------------------------ forum
+
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponse<ForumTopicRow> forumTopics(String search, String categoryKey, int page, int size) {
+        Specification<ForumTopic> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            if (categoryKey != null && !categoryKey.isBlank()) {
+                predicates.add(cb.equal(cb.lower(root.get("categoryKey")), categoryKey.trim().toLowerCase()));
+            }
+            if (search != null && !search.isBlank()) {
+                String pattern = "%" + search.trim().toLowerCase() + "%";
+                predicates.add(cb.or(
+                        cb.like(cb.lower(root.get("title")), pattern),
+                        cb.like(cb.lower(root.get("author").get("username")), pattern)));
+            }
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<ForumTopic> topics = forumTopicRepository.findAll(spec, pageable(page, size, "createdAt"));
+        return PageResponse.from(topics.map(topic -> new ForumTopicRow(
+                topic.getId(),
+                topic.getTitle(),
+                topic.getCategoryKey(),
+                categoryLabel(topic.getCategoryKey()),
+                topic.getAuthor().getUsername(),
+                topic.getSharedFrom() != null ? topic.getSharedFrom().getId() : null,
+                topic.getReplyCount(),
+                topic.getViewCount(),
+                topic.getCreatedAt())));
+    }
+
+    /** Reuses the portal's delete (replies and shares go with the topic); an admin is always allowed. */
+    @Transactional
+    @Override
+    public void deleteForumTopic(Long id, String admin) {
+        String title = forumTopicRepository.findById(id).map(ForumTopic::getTitle).orElse(null);
+        forumService.deleteTopic(id, admin);
+        auditService.log(admin, "FORUM_TOPIC_DELETED", "FORUM_TOPIC", id, title == null ? null : clip(title, 200));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PageResponse<ForumReplyRow> forumReplies(String search, int page, int size) {
+        Specification<ForumReply> spec = (root, query, cb) -> {
+            if (search == null || search.isBlank()) {
+                return cb.conjunction();
+            }
+            String pattern = "%" + search.trim().toLowerCase() + "%";
+            return cb.or(
+                    cb.like(cb.lower(root.get("author").get("username")), pattern),
+                    cb.like(cb.lower(root.get("topic").get("title")), pattern));
+        };
+
+        Page<ForumReply> replies = forumReplyRepository.findAll(spec, pageable(page, size, "createdAt"));
+        return PageResponse.from(replies.map(reply -> new ForumReplyRow(
+                reply.getId(),
+                forumReplyPreview(reply.getContentJson()),
+                reply.getAuthor().getUsername(),
+                reply.getTopic().getId(),
+                reply.getTopic().getTitle(),
+                reply.getCreatedAt())));
+    }
+
+    @Transactional
+    @Override
+    public void deleteForumReply(Long id, String admin) {
+        ForumReply reply = forumReplyRepository.findById(id)
+                .orElseThrow(() -> ResourceNotFoundException.of("Forum reply", id));
+        Long topicId = reply.getTopic().getId();
+        forumReplyRepository.delete(reply);
+        forumTopicRepository.decrementReplyCount(topicId);
+        auditService.log(admin, "FORUM_REPLY_DELETED", "FORUM_REPLY", id, "topic #" + topicId);
+    }
+
     // ---------------------------------------------------------------- reports
 
     @Transactional(readOnly = true)
@@ -390,6 +480,32 @@ public class AdminServiceImpl implements AdminService {
 
     private int clampSize(int size) {
         return Math.min(Math.max(size, 1), 100);
+    }
+
+    private String categoryLabel(String key) {
+        try {
+            return ForumCategory.fromKey(key).getLabel();
+        } catch (IllegalArgumentException e) {
+            return key; // an unknown key must not break the list
+        }
+    }
+
+    /** One line of text for the admin list: the first text/code block, else a short label for the attachment. */
+    private String forumReplyPreview(String contentJson) {
+        try {
+            List<ForumContentBlock> blocks = objectMapper.readValue(contentJson, new TypeReference<List<ForumContentBlock>>() { });
+            for (ForumContentBlock block : blocks) {
+                if (block.getText() != null && !block.getText().isBlank()) {
+                    return clip(block.getText().trim(), 300);
+                }
+            }
+            if (!blocks.isEmpty() && blocks.get(0).getType() != null) {
+                return "[" + blocks.get(0).getType().name().toLowerCase() + "]";
+            }
+        } catch (Exception ignored) {
+            // unreadable content: show a placeholder, never fail the page
+        }
+        return "(no text)";
     }
 
     private String clip(String text, int max) {

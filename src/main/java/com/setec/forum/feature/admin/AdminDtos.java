@@ -35,6 +35,16 @@ public final class AdminDtos {
             Long resourceId, String resourceTitle, LocalDateTime createdAt) {
     }
 
+    public record ForumTopicRow(
+            Long id, String title, String categoryKey, String categoryLabel, String authorUsername,
+            Long sharedFromId, long replyCount, long viewCount, LocalDateTime createdAt) {
+    }
+
+    public record ForumReplyRow(
+            Long id, String preview, String authorUsername,
+            Long topicId, String topicTitle, LocalDateTime createdAt) {
+    }
+
     public record ReportRow(
             Long id, String targetType, Long targetId, String targetLabel, String targetOwner,
             Long resourceId, String reason, String details, String status,

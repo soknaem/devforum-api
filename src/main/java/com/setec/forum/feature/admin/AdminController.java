@@ -4,6 +4,8 @@ import com.setec.forum.base.ApiResponse;
 import com.setec.forum.base.PageResponse;
 import com.setec.forum.feature.admin.AdminDtos.AuditRow;
 import com.setec.forum.feature.admin.AdminDtos.CommentRow;
+import com.setec.forum.feature.admin.AdminDtos.ForumReplyRow;
+import com.setec.forum.feature.admin.AdminDtos.ForumTopicRow;
 import com.setec.forum.feature.admin.AdminDtos.ReportRow;
 import com.setec.forum.feature.admin.AdminDtos.ResolveRequest;
 import com.setec.forum.feature.admin.AdminDtos.RoleRequest;
@@ -111,6 +113,37 @@ public class AdminController {
     public ApiResponse<Void> deleteComment(@PathVariable Long id, Authentication authentication) {
         adminService.deleteComment(id, authentication.getName());
         return ApiResponse.success("Comment deleted", null);
+    }
+
+    // ---- forum ----
+
+    @GetMapping("/forum/topics")
+    public ApiResponse<PageResponse<ForumTopicRow>> forumTopics(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String categoryKey,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(adminService.forumTopics(search, categoryKey, page, size));
+    }
+
+    @DeleteMapping("/forum/topics/{id}")
+    public ApiResponse<Void> deleteForumTopic(@PathVariable Long id, Authentication authentication) {
+        adminService.deleteForumTopic(id, authentication.getName());
+        return ApiResponse.success("Discussion deleted", null);
+    }
+
+    @GetMapping("/forum/replies")
+    public ApiResponse<PageResponse<ForumReplyRow>> forumReplies(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ApiResponse.success(adminService.forumReplies(search, page, size));
+    }
+
+    @DeleteMapping("/forum/replies/{id}")
+    public ApiResponse<Void> deleteForumReply(@PathVariable Long id, Authentication authentication) {
+        adminService.deleteForumReply(id, authentication.getName());
+        return ApiResponse.success("Reply deleted", null);
     }
 
     // ---- reports ----
